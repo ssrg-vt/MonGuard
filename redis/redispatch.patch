@@ -1,0 +1,119 @@
+diff --git a/src/workshop_paper/redis/deps/Makefile b/src/workshop_paper/redis/deps/Makefile
+index eb35c1e1..65261afe 100644
+--- a/src/workshop_paper/redis/deps/Makefile
++++ b/src/workshop_paper/redis/deps/Makefile
+@@ -1,5 +1,6 @@
+ # Redis dependency Makefile
+ 
++CC=/usr/local/musl/bin/musl-gcc
+ uname_S:= $(shell sh -c 'uname -s 2>/dev/null || echo not')
+ 
+ CCCOLOR="\033[34m"
+@@ -58,7 +59,7 @@ ifeq ($(uname_S),SunOS)
+ 	LUA_CFLAGS= -D__C99FEATURES__=1
+ endif
+ 
+-LUA_CFLAGS+= -O2 -Wall -DLUA_ANSI -DENABLE_CJSON_GLOBAL -DREDIS_STATIC='' $(CFLAGS)
++LUA_CFLAGS+= -O0 -g -Wall -DLUA_ANSI -DENABLE_CJSON_GLOBAL -DREDIS_STATIC='' $(CFLAGS)
+ LUA_LDFLAGS+= $(LDFLAGS)
+ # lua's Makefile defines AR="ar rcu", which is unusual, and makes it more
+ # challenging to cross-compile lua (and redis).  These defines make it easier
+@@ -78,6 +79,6 @@ JEMALLOC_LDFLAGS= $(LDFLAGS)
+ jemalloc: .make-prerequisites
+ 	@printf '%b %b\n' $(MAKECOLOR)MAKE$(ENDCOLOR) $(BINCOLOR)$@$(ENDCOLOR)
+ 	cd jemalloc && ./configure --with-version=5.1.0-0-g0 --with-lg-quantum=3 --with-jemalloc-prefix=je_ --enable-cc-silence CFLAGS="$(JEMALLOC_CFLAGS)" LDFLAGS="$(JEMALLOC_LDFLAGS)"
+-	cd jemalloc && $(MAKE) CFLAGS="$(JEMALLOC_CFLAGS)" LDFLAGS="$(JEMALLOC_LDFLAGS)" lib/libjemalloc.a
++	cd jemalloc && $(MAKE) CC="$(CC)" CFLAGS="$(JEMALLOC_CFLAGS)" LDFLAGS="$(JEMALLOC_LDFLAGS)" lib/libjemalloc.a
+ 
+ .PHONY: jemalloc
+diff --git a/src/workshop_paper/redis/deps/hiredis/Makefile b/src/workshop_paper/redis/deps/hiredis/Makefile
+index 06ca9946..9af5494e 100644
+--- a/src/workshop_paper/redis/deps/hiredis/Makefile
++++ b/src/workshop_paper/redis/deps/hiredis/Makefile
+@@ -38,7 +38,8 @@ export REDIS_TEST_CONFIG
+ # Fallback to gcc when $CC is not in $PATH.
+ CC:=$(shell sh -c 'type $${CC%% *} >/dev/null 2>/dev/null && echo $(CC) || echo gcc')
+ CXX:=$(shell sh -c 'type $${CXX%% *} >/dev/null 2>/dev/null && echo $(CXX) || echo g++')
+-OPTIMIZATION?=-O3
++CC=/usr/local/musl/bin/musl-gcc
++OPTIMIZATION?=-O0
+ WARNINGS=-Wall -W -Wstrict-prototypes -Wwrite-strings
+ DEBUG_FLAGS?= -g -ggdb
+ REAL_CFLAGS=$(OPTIMIZATION) -fPIC $(CPPFLAGS) $(CFLAGS) $(WARNINGS) $(DEBUG_FLAGS)
+diff --git a/src/workshop_paper/redis/deps/jemalloc/configure.ac b/src/workshop_paper/redis/deps/jemalloc/configure.ac
+index a6a08db0..1414e30e 100644
+--- a/src/workshop_paper/redis/deps/jemalloc/configure.ac
++++ b/src/workshop_paper/redis/deps/jemalloc/configure.ac
+@@ -180,6 +180,7 @@ AC_SUBST([XSLROOT])
+ dnl If CFLAGS isn't defined, set CFLAGS to something reasonable.  Otherwise,
+ dnl just prevent autoconf from molesting CFLAGS.
+ CFLAGS=$CFLAGS
++CC=${CC-/usr/local/musl/bin/musl-gcc}
+ AC_PROG_CC
+ 
+ if test "x$GCC" != "xyes" ; then
+diff --git a/src/workshop_paper/redis/deps/lua/src/Makefile b/src/workshop_paper/redis/deps/lua/src/Makefile
+index f3bba2f8..34ba7b1f 100644
+--- a/src/workshop_paper/redis/deps/lua/src/Makefile
++++ b/src/workshop_paper/redis/deps/lua/src/Makefile
+@@ -7,14 +7,14 @@
+ # Your platform. See PLATS for possible values.
+ PLAT= none
+ 
+-CC?= gcc
+-CFLAGS= -O2 -Wall $(MYCFLAGS)
++CC:= /usr/local/musl/bin/musl-gcc
++CFLAGS= -O0 -g -Wall $(MYCFLAGS)
+ AR= ar rcu
+ RANLIB= ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 
+-MYCFLAGS=
++MYCFLAGS= -g -nostdinc
+ MYLDFLAGS=
+ MYLIBS=
+ 
+diff --git a/src/workshop_paper/redis/src/Makefile b/src/workshop_paper/redis/src/Makefile
+index f35685ef..87c384cd 100644
+--- a/src/workshop_paper/redis/src/Makefile
++++ b/src/workshop_paper/redis/src/Makefile
+@@ -15,7 +15,7 @@
+ release_hdr := $(shell sh -c './mkreleasehdr.sh')
+ uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+ uname_M := $(shell sh -c 'uname -m 2>/dev/null || echo not')
+-OPTIMIZATION?=-O2
++OPTIMIZATION?=-O0
+ DEPENDENCY_TARGETS=hiredis linenoise lua
+ NODEPS:=clean distclean
+ 
+@@ -38,7 +38,7 @@ MALLOC=libc
+ ifneq ($(uname_M),armv6l)
+ ifneq ($(uname_M),armv7l)
+ ifeq ($(uname_S),Linux)
+-	MALLOC=jemalloc
++	MALLOC=libc
+ endif
+ endif
+ endif
+@@ -145,6 +145,7 @@ ifeq ($(MALLOC),jemalloc)
+ 	FINAL_LIBS := ../deps/jemalloc/lib/libjemalloc.a $(FINAL_LIBS)
+ endif
+ 
++CC=/usr/local/musl/bin/musl-gcc
+ REDIS_CC=$(QUIET_CC)$(CC) $(FINAL_CFLAGS)
+ REDIS_LD=$(QUIET_LINK)$(CC) $(FINAL_LDFLAGS)
+ REDIS_INSTALL=$(QUIET_INSTALL)$(INSTALL)
+diff --git a/src/workshop_paper/redis/src/config.h b/src/workshop_paper/redis/src/config.h
+index efa9d11f..8b8d9875 100644
+--- a/src/workshop_paper/redis/src/config.h
++++ b/src/workshop_paper/redis/src/config.h
+@@ -35,7 +35,7 @@
+ #endif
+ 
+ #ifdef __linux__
+-#include <linux/version.h>
++//#include <linux/version.h>
+ #include <features.h>
+ #endif
+ 

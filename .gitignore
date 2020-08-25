@@ -41,6 +41,11 @@
 *.su
 *.idb
 *.pdb
+*.json
+*.conf
+*.gdb_history
+tags
+dump.rdb
 
 # Kernel Module Compile Results
 *.mod*
