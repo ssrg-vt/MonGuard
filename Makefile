@@ -26,7 +26,7 @@ endif
 
 BIN := test.bin
 
-all: pre monitor libthreadtest.so test.bin thread_test.bin
+all: pre monitor libcallcount.so libthreadtest.so test.bin thread_test.bin
 
 pre: clean
 	@echo $(SRC)
@@ -41,13 +41,20 @@ monitor: $(OBJ) $(OBJ_DIR)/trampoline.o
 
 install: libmonitor.so
 	install -C libmonitor.so /usr/local/lib/
+	install -C libcallcount.so /usr/local/lib/
 	install -C libmonitor.so /usr/lib/x86_64-linux-gnu/
 	install -D $(INC_DIR)/libmonitor.h /usr/local/dec/inc
+	install -D $(LIB_DIR)/libcallcount.h /usr/local/dec/inc
 
 ## For multithreaded testing, library, binary build targets and run/debug targets
 libthreadtest.so: $(LIB_OBJ_FILES)
 	@echo "Generate "$@":"
 	$(HUSH_CC_LD) $(CC) -shared $^ $(LDFLAGS) -o libthreadtest.so
+
+## For benchmarking number of libc calls in code segment, library,
+libcallcount.so: $(LIB_OBJ_FILES)
+	@echo "Generate "$@":"
+	$(HUSH_CC_LD) $(CC) -shared $^ $(LDFLAGS) -o libcallcount.so
 
 thread_test.bin: $(TEST_DIR)/thread_test.c libthreadtest.so
 	@echo "Generate "$@":"
@@ -117,7 +124,7 @@ check_redis:
 	./checker.sh redis/src/redis-server
 
 clean:
-	rm -rf $(OBJ_DIR) libmonitor.so libthreadtest.so test.bin getpid_loop.bin thread_test.bin
+	rm -rf $(OBJ_DIR) libmonitor.so libcallcount.so libthreadtest.so test.bin getpid_loop.bin thread_test.bin
 
 rebuild:
 	make clean; make all

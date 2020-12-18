@@ -8,6 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include <libcallcount.h>
 
 
 typedef struct {
@@ -109,7 +110,9 @@ ngx_http_index_handler(ngx_http_request_t *r)
     ngx_http_index_loc_conf_t    *ilcf;
     ngx_http_script_len_code_pt   lcode;
 
+    start_libcall_count();
     if (r->uri.data[r->uri.len - 1] != '/') {
+	end_libcall_count();
         return NGX_DECLINED;
     }
 

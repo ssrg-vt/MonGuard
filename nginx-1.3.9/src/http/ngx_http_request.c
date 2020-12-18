@@ -8,6 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include <libcallcount.h>
 
 static void ngx_http_init_request(ngx_event_t *ev);
 static void ngx_http_process_request_line(ngx_event_t *rev);
@@ -524,7 +525,9 @@ ngx_http_init_request(ngx_event_t *rev)
 #endif
 
     //lmvx_start("ngx_http_process_request_line", 1, rev);
+    //start_libcall_count();
     rev->handler(rev);
+    //end_libcall_count();
     //lmvx_end();
 }
 
@@ -747,7 +750,9 @@ ngx_http_process_request_line(ngx_event_t *rev)
             }
         }
 
-        rc = ngx_http_parse_request_line(r, r->header_in);
+        //start_libcall_count();
+	rc = ngx_http_parse_request_line(r, r->header_in);
+        //end_libcall_count();
 
         if (rc == NGX_OK) {
 
@@ -1417,7 +1422,9 @@ ngx_http_process_host(ngx_http_request_t *r, ngx_table_elt_t *h,
     }
 
     host = h->value.data;
+    //start_libcall_count();
     len = ngx_http_validate_host(r, &host, h->value.len, 0);
+    //end_libcall_count();
 
     if (len == 0) {
         ngx_log_error(NGX_LOG_INFO, r->connection->log, 0,
@@ -1696,7 +1703,9 @@ ngx_http_process_request(ngx_http_request_t *r)
     r->read_event_handler = ngx_http_block_reading;
 
     //lmvx_start("ngx_http_handler", 1, r);
+    //start_libcall_count();
     ngx_http_handler(r);
+    //end_libcall_count();
     //lmvx_end();
 
     ngx_http_run_posted_requests(c);

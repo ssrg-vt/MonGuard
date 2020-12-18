@@ -12,7 +12,8 @@ ALL_INCS = -I src/core \
 	-I objs \
 	-I src/http \
 	-I src/http/modules \
-	-I src/mail
+	-I src/mail \
+    -I /usr/local/dec/inc
 
 CORE_DEPS = src/core/nginx.h \
 	src/core/ngx_config.h \
@@ -76,7 +77,7 @@ CORE_INCS = -I src/core \
 	-I src/event/modules \
 	-I src/os/unix \
 	-I objs \
-    -I /usr/local/dec/inc
+    -I /usr/local/dec/inc \
 
 
 HTTP_DEPS = src/http/ngx_http.h \
@@ -93,7 +94,8 @@ HTTP_DEPS = src/http/ngx_http.h \
 
 
 HTTP_INCS = -I src/http \
-	-I src/http/modules
+	-I src/http/modules \
+    -I /usr/local/dec/inc
 
 
 objs/nginx:	objs/src/core/nginx.o \
@@ -308,7 +310,7 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/src/http/modules/ngx_http_upstream_least_conn_module.o \
 	objs/src/http/modules/ngx_http_upstream_keepalive_module.o \
 	objs/ngx_modules.o \
-	-L /usr/local/lib -llmvx
+	-L /usr/local/lib -lcallcount
 	
 objs/ngx_modules.o:	$(CORE_DEPS) \
 	objs/ngx_modules.c

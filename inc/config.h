@@ -6,4 +6,9 @@
 #define _DEBUG 1
 #endif
 
+/* Enable shared lib number of calls counting, uncomment to enable */
+#ifndef _LIBC_COUNT
+//#define _LIBC_COUNT 1
+#endif
+
 #endif

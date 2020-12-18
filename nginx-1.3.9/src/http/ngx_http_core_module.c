@@ -8,6 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+#include <libcallcount.h>
 
 
 typedef struct {
@@ -884,7 +885,9 @@ ngx_http_core_run_phases(ngx_http_request_t *r)
 
     while (ph[r->phase_handler].checker) {
 
+        //start_libcall_count();
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
+        //end_libcall_count();
 
         if (rc == NGX_OK) {
             return;

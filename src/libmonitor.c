@@ -23,6 +23,9 @@
 #include <pkey.h>
 #include <loader.h>
 
+uint64_t track_libc_count = 0;
+uint64_t num_libc_calls = 0;
+
 void __attribute__ ((constructor)) init_tramp(int argc, char** argv, char** env)
 {
 	/*Call this guy all the time first */
@@ -49,4 +52,15 @@ void associate_all_pkeys()
 	associate_pkey_library(&libc_info, pkey);
 	associate_pkey_library(&monitor_info, pkey);
 	DEACTIVATE();
+}
+
+void start_libcall_count()
+{
+	track_libc_count |= 0x1;
+}
+
+void end_libcall_count()
+{
+	track_libc_count &= 0x0;
+	//log_debug("Libc call count in protected section: %d", num_libc_calls);
 }

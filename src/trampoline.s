@@ -67,7 +67,6 @@ mpk_trampoline:
     push %rax
     mov (%rbx), %rax     # Push slot number
     push %rax
-
 # Accounting, remove two entries from unsafestack because these will
 # be popped in the safestack. We need to maintain consistency.
     add $0x10, %rbx
@@ -82,6 +81,19 @@ mpk_trampoline:
     pop %rcx
     pop %rdi
     mov %rbx, (%rax)
+
+.ifdef _LIBC_COUNT
+    # Capture number of libc calls if this is uncommented:
+        mov track_libc_count@GOTPCREL(%rip), %rbx
+        mov (%rbx), %rax
+        cmp $0x0, %rax
+        je nocapture
+        mov num_libc_calls@GOTPCREL(%rip), %rbx
+        mov (%rbx), %rax
+        inc %rax
+        mov %rax, (%rbx)
+    nocapture:
+.endif
 
 # We don't need jump target anymore
 # Get slot number, old %rax and %rbx still on stack

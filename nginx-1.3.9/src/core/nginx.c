@@ -8,7 +8,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <nginx.h>
-//#include <lmvx.h>
+#include <libcallcount.h>
 
 static ngx_int_t ngx_add_inherited_sockets(ngx_cycle_t *cycle);
 static ngx_int_t ngx_get_options(int argc, char *const *argv);
@@ -407,10 +407,9 @@ main(int argc, char *const *argv)
     ngx_use_stderr = 0;
 
     if (ngx_process == NGX_PROCESS_SINGLE) {
-	//lmvx_start("ngx_single_process_cycle", 1, cycle);
-        ngx_single_process_cycle(cycle);
-	//lmvx_end();
-
+       //start_libcall_count();
+       ngx_single_process_cycle(cycle);
+       //end_libcall_count();
     } else {
         ngx_master_process_cycle(cycle);
     }
